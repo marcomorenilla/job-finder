@@ -29,80 +29,87 @@ España
 ---
 Madrid
 Guardar
-### Ingeniero de Protecciones Junior
-Infrastructure & Capital Projects
-Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=13686870_es&title=Ingeniero%20de%20Protecciones%20Junior)
-[---
----
-Multiple Locations
-Guardar
-### Ingeniero Junior Big Data - AWS & Python
-AI & Data
-publicada 9 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00307228_es&title=Ingeniero%20Junior%20Big%20Data%20-%20AWS%20%26%20Python)
-[---
----
-Multiple Locations
-Guardar
-### Technnical Consultant SAP PI, PO, CPI for Spain
+### ¿Eres recién titulado? Únete a Accenture Technology Madrid
 Business & Technology Integration
-Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=R00235340_es&title=Technnical%20Consultant%20SAP%20PI%2C%20PO%2C%20CPI%20for%20Spain)
-[---
----
-Multiple Locations
-Guardar
-### AI Supply Chain Strategy Manager
-AI & Data
-publicada 4 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00307440_es&title=AI%20Supply%20Chain%20Strategy%20Manager)
-[---
----
-Multiple Locations
-Guardar
-### Supply Chain Data&AI Strategy Consultant
-AI & Data
-Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=R00288934_es&title=Supply%20Chain%20Data%26AI%20Strategy%20Consultant)
-[---
----
-Multiple Locations
-Guardar
-### Consultor SAP Basis
-Industry Solutions & Services
-publicada 4 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00235345_es&title=Consultor%20SAP%20Basis)
-[---
----
-Multiple Locations
-Guardar
-### Microservices Software Engineering
-Software Engineering
-publicada 16 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00283710_es&title=Microservices%20Software%20Engineering)
-[---
----
-Multiple Locations
-Guardar
-### Banking Strategy
-Consulting
-Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=R00184766_es&title=Banking%20Strategy)
+publicada 2 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00283482_es&title=%C2%BFEres%20reci%C3%A9n%20titulado%3F%20%C3%9Anete%20a%20Accenture%20Technology%20Madrid)
 [---
 España
 ---
 Madrid
 Guardar
-### Workplace Services Analyst
-Workplace Management & Service Solutions
-publicada 10 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00285480_es&title=Workplace%20Services%20Analyst)
+### ¿Eres recién titulado? Únete a Accenture Consulting Madrid
+Consulting
+publicada 4 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00301132_es&title=%C2%BFEres%20reci%C3%A9n%20titulado%3F%20%C3%9Anete%20a%20Accenture%20Consulting%20Madrid)
+[---
+España
+---
+Barcelona
+Guardar
+### ¿Eres recién titulado? Únete a Accenture Technology Barcelona
+Software Engineering
+publicada 2 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00283504_es&title=%C2%BFEres%20reci%C3%A9n%20titulado%3F%20%C3%9Anete%20a%20Accenture%20Technology%20Barcelona)
+[---
+España
+---
+La Coruna
+Guardar
+### Recién titulados Accenture Technology - La Coruña
+Software Engineering
+publicada 2 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00298647_es&title=Reci%C3%A9n%20titulados%20Accenture%20Technology%20-%20La%20Coru%C3%B1a)
+[---
+España
+---
+Sevilla
+Guardar
+### Programa de Prácticas DIXCOVER - Sevilla
+Software Engineering
+Posted 1 day ago](https://www.accenture.com/es-es/careers/jobdetails?id=R00283964_es&title=Programa%20de%20Pr%C3%A1cticas%20DIXCOVER%20-%20%20Sevilla)
+[---
+España
+---
+La Coruna
+Guardar
+### Programa de Prácticas DIXCOVER - GALICIA
+Software Engineering
+publicada 5 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00283689_es&title=Programa%20de%20Pr%C3%A1cticas%20%20DIXCOVER%20-%20GALICIA)
 [---
 ---
 Multiple Locations
 Guardar
-### Senior SAP Integration Expert
-Business & Technology Integration
-publicada 16 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00305879_es&title=Senior%20SAP%20Integration%20Expert)
+### Salesforce Marketing Cloud Consultant
+Software Engineering
+Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=R00283957_es&title=Salesforce%20Marketing%20Cloud%20Consultant)
+[---
+España
+---
+Bilbao
+Guardar
+### DIXCOVER\_Programa de Prácticas Technology Bilbao
+Software Engineering
+Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=R00283728_es&title=DIXCOVER_Programa%20de%20Pr%C3%A1cticas%20Technology%20Bilbao)
+[---
+España
+---
+Madrid
+Guardar
+### Ingeniero Técnico de Calidad
+Engineering & Networks
+Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=13866648_es&title=Ingeniero%20T%C3%A9cnico%20de%20Calidad)
+[---
+España
+---
+Madrid
+Guardar
+### Delineante Barajas
+Infrastructure & Capital Projects
+publicada 4 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=13686878_es&title=Delineante%20Barajas)
 [---
 ---
 Multiple Locations
 Guardar
-### SAP BTP Development Lead – AI Expert
-Business & Technology Integration
-publicada 11 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00305911_es&title=SAP%20BTP%20Development%20Lead%20%E2%80%93%20AI%20Expert)
+### Programa Prácticas FP Accenture - Toda España
+AI & Data
+Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=R00283494_es&title=Programa%20Pr%C3%A1cticas%20FP%20Accenture%20-%20Toda%20Espa%C3%B1a)
 No results for
 --------------
 ###### Search tips
@@ -122,11 +129,11 @@ Página de 1
 Todas las decisiones de empleo se tomarán sin importar la edad, raza, credo, color, religión, sexo, origen nacional, ascendencia, grado de discapacidad, estado de veterano, orientación sexual, identidad o expresión de género, información genética, estado civil, estado de ciudadanía o cualquier otro motivo o circunstancias protegidas por las leyes federales, estatales o locales.
 Mantente al día
 ---------------
-[![](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)](/es-es/careers/jobsearch)
+[![](https://dynamicmedia.accenture.com/is/image/accenture/Accenture-Join-our-Team-150x150?qlt=85&wid=320&ts=1746777417775&$auto-png-alpha$&fit=constrain&dpr=off)](/es-es/careers/jobsearch)
 ### Únete al equipo
 Busca ofertas de empleo que coincidan con tus habilidades e intereses. Buscamos personas proactivas, curiosas, creativas con ganas de trabajar en equipo.
 [BUSCAR OFERTAS DE EMPLEO](/es-es/careers/jobsearch)
-[![](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)](https://www.accenture.com/us-en/blogs/blogs-careers)
+[![](https://dynamicmedia.accenture.com/is/image/accenture/Accenture-Keep-up-to-Date-150x150?qlt=85&wid=320&ts=1746777526260&$auto-png-alpha$&fit=constrain&dpr=off)](https://www.accenture.com/us-en/blogs/blogs-careers)
 ### Mantente al día
 Mantente al día de las últimas noticias, consejos y oportunidades profesionales.
 [LEER BLOG - ACCENTURE CAREERS](https://www.accenture.com/us-en/blogs/blogs-careers)

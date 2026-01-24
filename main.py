@@ -2,6 +2,7 @@ import json
 import time
 import os
 import asyncio
+from pathlib import Path
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from selenium import webdriver
@@ -13,16 +14,15 @@ from markdownify import markdownify as md
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-
-
-
-
+from aiogram import Bot
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 
 
 # Abre navegador y espera a que se ejecute el JS
 # Devuelve el código del HTML completo
-async def get_html(url):
-
+async def get_html(urls):
+    print('entering')
     # Configuración de Chrome para que no se abra la ventana (Headless)
     chrome_options = Options()
     chrome_options.add_argument("--headless") 
@@ -33,22 +33,27 @@ async def get_html(url):
     driver = webdriver.Chrome(options=chrome_options)
 
     try:
-        driver.get(url)
-        
-        # Esperamos hasta 10 segundos hasta que aparezca un <a></a>
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "a"))
-            )
-        except Exception as e:
-            print(f"  Se produjo un error recuperando la web {url}: \n{e}")
+        html_collection=[]
+        for url in urls:
 
-        # Hacemos un pequeño scroll hacia abajo para activar "lazy loading" si lo hubiera
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
-        time.sleep(2) 
+            driver.get(url)
+            print(f'parsing url {url}')
+            
+            # Esperamos hasta 10 segundos hasta que aparezca un <a></a>
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "a"))
+                )
+            except Exception as e:
+                print(f"  Se produjo un error recuperando la web {url}: \n{e}")
 
-        html_content = driver.page_source
-        return html_content
+            # Hacemos un pequeño scroll hacia abajo para activar "lazy loading" si lo hubiera
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
+            time.sleep(2) 
+
+            html_content = driver.page_source
+            html_collection.append(html_content)
+        return html_collection
 
     except Exception as e:
         print(f"Error con Selenium en {url}: {e}")
@@ -56,105 +61,116 @@ async def get_html(url):
     finally:
         driver.quit() 
 
-async def ai_analyzer(model, system_instruction, contents):
+# Conviertte el html a md para limpieza excluyendo etiquetas head, script, style
+async def parse_html_to_md(htmls):
+    print('Cleaning and converting content...')
+    
+    for html in htmls:
+        # Usamos BeautifulSoup para una limpieza profunda
+        soup = BeautifulSoup(html, 'html.parser')
+        # Añadimos 'style', 'noscript', 'meta' y 'svg' para ahorrar más tokens
+        for element in soup(["script", "style", "head", "header", "footer", "nav", "noscript", "svg", "meta"]):
+            element.decompose()
+
+        # Seleccionamos solo el contenido principal si la web usa etiquetas semánticas
+        main_content = soup.find('main') or soup.find('article') or soup.body
+        
+        # Convertimos a Markdown lo que queda (que ya está limpio)
+        if main_content:
+            clean_html = str(main_content)
+            md_text = md(clean_html) 
+            
+            # Limpieza de saltos de línea excesivos
+            md_text = "\n".join([line.strip() for line in md_text.splitlines() if line.strip()])
+
+            with open('webs.md', 'a', encoding='utf-8') as f:
+                f.write(md_text)
+            print('File webs.md saved successfully.')
+
+# Crea un cliente de Gemini y le pasa el archivo.md generado con las ofertas
+async def ai_analyzer(model, system_instruction,md_file):
     client = genai.Client()
 
-    # Create a cache with a 5 minute TTL (300 seconds)
-    """
-    cache = client.caches.create(
-        model=model,
-        config=types.CreateCachedContentConfig(
-            display_name='recruiter', 
-            system_instruction=system_instruction,
-            contents=[contents],
-            ttl="300s",
-        )
-    )"""
+    with open(md_file,'r',encoding='utf-8') as f:
+        file_content=f.read()
 
     response = client.models.generate_content(
         model = model,
         config=types.GenerateContentConfig(
             system_instruction=system_instruction
         ),
-        contents= [contents, 'Extrae nombre de la oferta, enlace si se ajustan al perfil descrito en las instrucciones']
-        #config=types.GenerateContentConfig(cached_content=cache.name)
+        contents= [file_content,'Busca ofertas que coincidan con el perfil. Responde con un mensaje aceptable para markdown de telegram con la empresa la oferta y el link'
+        'Utiliza el menor número de palabras posibles y no justifiques por qué se ajusta el perfil'
+        'utiliza solamente el Markdown de Telegram:'
+        '- Listas'
+        '* Negrita']
     )
     
 
 
     return response
 
-# Conviertte el html a md para limpieza excluyendo etiquetas head, script, style
-def parse_html_to_md(html):
-    print('Cleaning and converting content...')
-    
-    # Usamos BeautifulSoup para una limpieza profunda
-    soup = BeautifulSoup(html, 'html.parser')
-    
-    # Añadimos 'style', 'noscript', 'meta' y 'svg' para ahorrar más tokens
-    for element in soup(["script", "style", "head", "header", "footer", "nav", "noscript", "svg", "meta"]):
-        element.decompose()
 
-    # Seleccionamos solo el contenido principal si la web usa etiquetas semánticas
-    main_content = soup.find('main') or soup.find('article') or soup.body
-    
-    # Convertimos a Markdown lo que queda (que ya está limpio)
-    if main_content:
-        clean_html = str(main_content)
-        md_text = md(clean_html) 
-        
-        # Limpieza de saltos de línea excesivos
-        md_text = "\n".join([line.strip() for line in md_text.splitlines() if line.strip()])
 
-        with open('web.md', 'w', encoding='utf-8') as f:
-            f.write(md_text)
-        print('File web.md saved successfully.')
+async def send_message(TELEGRAM_TOKEN, CHAT_ID,message):
+    print('entering in send message')
+
+    async with Bot(
+        token=TELEGRAM_TOKEN
+        )as bot:
+        print('enviando mensaje')
+        try:
+            response = await bot.send_message(chat_id=CHAT_ID,text=message)
+            print(f'respuesta: {response.text}')
+        except Exception as e:
+            print(f'fallo {e}')
 
 
 
-
-async def main():
+async def main(TELEGRAM_TOKEN, CHAT_ID):
     # Nombre del fichero con las Url
     urls_file = 'urls.json'
     system_instructions_file = 'system_instructions.md'
     web_md_file = 'webs.md'
     model = "gemini-2.5-flash"
-    print(f'Gemini API_KEY: {GEMINI_API_KEY[0:10]}....')
+    md_file = Path('webs.md')
     try:
+        if(md_file.exists()):
+            print(md_file)
+            md_file.unlink()
+        else:
+            print(f'No existe el archivo {md_file}')
         with open(urls_file, 'r', encoding='utf-8') as f:
             urls = json.load(f).get('urls', [])
-            print(urls)
+
         with open(system_instructions_file, 'r', encoding='utf-8') as f:
-            instructions = []
-            for line in f:
-                instructions.append(line)
-            system_instructions = "\n".join(instructions)
-
-        with open(web_md_file, 'r', encoding='utf-8') as f:
-            web_content = []
-            for line in f:
-                web_content.append(line)
-            content = "\n".join(web_content)
-    
-
-    except Exception:
-        return
-
-    # Palabras claves provisionales
-    keywords = ["Junior", "python", "developer", "programador"]
-    html = await get_html(urls[0] if len(urls)>0 else '<h1>No content found</h1>')
-    parse_html_to_md(html)
-    gemini_response = await ai_analyzer(model, system_instructions, content)
-    print(gemini_response.text)
+            system_instructions = f.read()
 
 
 
+        htmls = await get_html([url for url in urls] if urls else '<h1>No content found</h1>')
+        await parse_html_to_md(htmls)       
+        gemini_response = await ai_analyzer(model, system_instructions,md_file)
+        with open('gemini_response.md','w', encoding='utf-8') as f:
+            f.write(gemini_response.text)
+        await send_message(TELEGRAM_TOKEN, CHAT_ID, gemini_response.text)
+    except Exception as e:
+        print(f'Exception:\n{e}')
 
 if __name__ == "__main__":
     # cargamos variables de entorno
     load_dotenv()
 
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+    CHAT_ID = os.getenv('CHAT_ID')
+
+    print('Cargando variables de entorno....')
+    print('|')
+    print(f'|-> Gemini API KEY: {GEMINI_API_KEY[0:15]}.........')
+    print(f'|-> Telegram Token: {TELEGRAM_TOKEN[0:15]}.........')
+    print(f'|-> Chat Id: {CHAT_ID[0:15]}.........')
+    print('')
 
     
-    asyncio.run(main())
+    asyncio.run(main(TELEGRAM_TOKEN,CHAT_ID))
