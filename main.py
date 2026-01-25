@@ -1,10 +1,11 @@
 import json
-import time
 import os
 import asyncio
+import logging
 from pathlib import Path
+from typing import List, Optional, Dict, Any
+
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -13,153 +14,198 @@ from selenium.webdriver.support import expected_conditions as EC
 from markdownify import markdownify as md
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types
+from google.genai import types as genai_types
 from aiogram import Bot
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
 
+# --- Constants and Configuration ---
+# Nombres de archivos centralizados para fácil modificación.
+URLS_FILE = 'urls.json'
+SYSTEM_INSTRUCTIONS_FILE = 'system_instructions.md'
+OUTPUT_MD_FILE = 'webs.md'
+GEMINI_RESPONSE_FILE = 'gemini_response.md'
+AI_MODEL_NAME = "gemini-2.5-flash"
 
-# Abre navegador y espera a que se ejecute el JS
-# Devuelve el código del HTML completo
-async def get_html(urls):
-    print('entering')
-    # Configuración de Chrome para que no se abra la ventana (Headless)
+# Configuración del logging para reemplazar los 'print'.
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# --- Main Functions ---
+
+async def get_html(urls: List[str]) -> List[str]:
+    """
+    Navega a una lista de URLs usando Selenium y devuelve el contenido HTML de cada una.
+    Utiliza un navegador en modo headless (sin interfaz gráfica).
+    """
+    logging.info('Iniciando la obtención de HTMLs con Selenium.')
     chrome_options = Options()
-    chrome_options.add_argument("--headless") 
+    chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
 
     driver = webdriver.Chrome(options=chrome_options)
+    html_collection: List[str] = []
 
     try:
-        html_collection=[]
         for url in urls:
-
+            logging.info(f'Procesando URL: {url}')
             driver.get(url)
-            print(f'parsing url {url}')
-            
-            # Esperamos hasta 10 segundos hasta que aparezca un <a></a>
+
             try:
+                # Espera explícita a que un elemento clave esté presente.
                 WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "a"))
+                    EC.presence_of_element_located((By.TAG_NAME, "body"))
                 )
-            except Exception as e:
-                print(f"  Se produjo un error recuperando la web {url}: \n{e}")
 
-            # Hacemos un pequeño scroll hacia abajo para activar "lazy loading" si lo hubiera
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
-            time.sleep(2) 
+                # Estrategia de scroll robusta para activar "lazy loading".
+                last_height = driver.execute_script("return document.body.scrollHeight")
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
+                
+                # Espera a que el scroll cargue nuevo contenido (si lo hay).
+                WebDriverWait(driver, 5).until(
+                    lambda d: d.execute_script("return document.body.scrollHeight") > last_height
+                )
 
-            html_content = driver.page_source
-            html_collection.append(html_content)
+            except Exception:
+                logging.warning(f"No se detectó contenido nuevo por lazy loading en {url} o la página cargó instantáneamente.")
+
+            html_collection.append(driver.page_source)
         return html_collection
 
     except Exception as e:
-        print(f"Error con Selenium en {url}: {e}")
-        return None
+        logging.error(f"Error crítico con Selenium en la URL {url}: {e}")
+        return []
     finally:
-        driver.quit() 
+        driver.quit()
+        logging.info('Driver de Selenium cerrado.')
 
-# Conviertte el html a md para limpieza excluyendo etiquetas head, script, style
-async def parse_html_to_md(htmls):
-    print('Cleaning and converting content...')
+async def parse_html_to_md(htmls: List[str]) -> None:
+    """
+    Limpia una lista de HTMLs, los convierte a Markdown y los guarda en un único archivo.
+    """
+    logging.info('Iniciando limpieza de HTML y conversión a Markdown.')
     
+    # Asegurarse de que el archivo de salida esté limpio antes de empezar.
+    if os.path.exists(OUTPUT_MD_FILE):
+        os.remove(OUTPUT_MD_FILE)
+
     for html in htmls:
-        # Usamos BeautifulSoup para una limpieza profunda
         soup = BeautifulSoup(html, 'html.parser')
-        # Añadimos 'style', 'noscript', 'meta' y 'svg' para ahorrar más tokens
+        
+        # Eliminación de etiquetas innecesarias para reducir "ruido".
         for element in soup(["script", "style", "head", "header", "footer", "nav", "noscript", "svg", "meta"]):
             element.decompose()
 
-        # Seleccionamos solo el contenido principal si la web usa etiquetas semánticas
         main_content = soup.find('main') or soup.find('article') or soup.body
         
-        # Convertimos a Markdown lo que queda (que ya está limpio)
         if main_content:
             clean_html = str(main_content)
-            md_text = md(clean_html) 
+            md_text = md(clean_html)
             
-            # Limpieza de saltos de línea excesivos
-            md_text = "\n".join([line.strip() for line in md_text.splitlines() if line.strip()])
+            # Limpieza de saltos de línea excesivos.
+            md_text_cleaned = "\n".join([line.strip() for line in md_text.splitlines() if line.strip()])
 
-            with open('webs.md', 'a', encoding='utf-8') as f:
-                f.write(md_text)
-            print('File webs.md saved successfully.')
-
-# Crea un cliente de Gemini y le pasa el archivo.md generado con las ofertas
-async def ai_analyzer(model):
+            with open(OUTPUT_MD_FILE, 'a', encoding='utf-8') as f:
+                f.write(md_text_cleaned + "\n\n")
     
-    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    logging.info(f'Contenido guardado exitosamente en {OUTPUT_MD_FILE}.')
 
-    client = genai.Client()
-    
-    with open('system_instructions.md', 'r', encoding='utf-8') as f:
-        system_instructions = f.read()
+async def ai_analyzer() -> Optional[str]:
+    """
+    Utiliza la API de Gemini para analizar el contenido Markdown y generar una respuesta.
+    """
+    logging.info('Iniciando análisis con Gemini AI.')
+    try:
+        if not os.path.exists(SYSTEM_INSTRUCTIONS_FILE) or not os.path.exists(OUTPUT_MD_FILE):
+            logging.error("No se encontraron los archivos de instrucciones o de contenido para la IA.")
+            return None
 
-    with open('webs.md','r',encoding='utf-8') as f:
-        file_content=f.read()
+        client = genai.Client()
 
-    response = client.models.generate_content(
-        model = model,
-        config=types.GenerateContentConfig(
-            system_instruction=system_instructions
-        ),
-        contents= [file_content,'Busca ofertas que coincidan con el perfil. Responde con un mensaje aceptable para markdown de telegram con la empresa la oferta y el link'
-        'Utiliza el menor número de palabras posibles y no justifiques por qué se ajusta el perfil'
-        'utiliza solamente el Markdown de Telegram:'
-        '- Listas'
-        '* Negrita']
-    )
-    
-    with open('gemini_response.md','w', encoding='utf-8') as f:
-        f.write(response.text)
+        with open(SYSTEM_INSTRUCTIONS_FILE, 'r', encoding='utf-8') as f:
+            system_instructions = f.read()
 
-    return response
+        with open(OUTPUT_MD_FILE, 'r', encoding='utf-8') as f:
+            file_content = f.read()
 
 
+        # El prompt se ha simplificado y se ha movido a las system_instructions para mayor claridad.
+        prompt = "Busca ofertas que coincidan con el perfil. Responde con un mensaje aceptable para markdown de telegram con la empresa la oferta y el link. Utiliza el menor número de palabras posibles y no justifiques por qué se ajusta el perfil. Utiliza solamente el Markdown de Telegram: Listas, *Negrita*."
 
-async def send_message(message):
+        response = client.models.generate_content(
+            model=AI_MODEL_NAME,
+            contents=[file_content,prompt]
+        )
 
+        response_text = response.text
+        with open(GEMINI_RESPONSE_FILE, 'w', encoding='utf-8') as f:
+            f.write(response_text)
+        
+        logging.info(f"Respuesta de Gemini guardada en {GEMINI_RESPONSE_FILE}.")
+        return response_text
+
+    except Exception as e:
+        logging.error(f"Ocurrió un error durante el análisis de Gemini AI: {e}")
+        return None
+
+async def send_telegram_message(message: str) -> None:
+    """
+    Envía un mensaje a un chat de Telegram a través de un Bot.
+    """
     TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
     CHAT_ID = os.getenv('CHAT_ID')
 
-    async with Bot(
-        token=TELEGRAM_TOKEN
-        )as bot:
-        print('enviando mensaje')
-        try:
-            response = await bot.send_message(chat_id=CHAT_ID,text=message)
-            print(f'respuesta: {response.text}')
-        except Exception as e:
-            print(f'fallo {e}')
+    if not TELEGRAM_TOKEN or not CHAT_ID:
+        logging.error("Token de Telegram o Chat ID no configurados en las variables de entorno.")
+        return
 
-
+    logging.info('Enviando mensaje a Telegram.')
+    try:
+        async with Bot(token=TELEGRAM_TOKEN) as bot:
+            await bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="Markdown")
+            logging.info('Mensaje enviado a Telegram correctamente.')
+    except Exception as e:
+        logging.error(f"Fallo al enviar el mensaje a Telegram: {e}")
 
 async def main():
-    # Nombre del fichero con las Url
-    urls_file = 'urls.json'
-    model = "gemini-2.5-flash"
-    md_file = Path('webs.md')
-
-    try:
-        if(md_file.exists()):
-            print(md_file)
-            md_file.unlink()
-        else:
-            print(f'No existe el archivo {md_file}')
-        with open(urls_file, 'r', encoding='utf-8') as f:
-            urls = json.load(f).get('urls', [])
-
-        htmls = await get_html([url for url in urls] if urls else '<h1>No content found</h1>')
-        await parse_html_to_md(htmls)       
-        gemini_response = await ai_analyzer(model)
-        await send_message(gemini_response.text)
-    except Exception as e:
-        print(f'Exception:\n{e}')
-
-if __name__ == "__main__":
-    # cargamos variables de entorno
+    """
+    Función principal que orquesta el pipeline:
+    1. Carga URLs.
+    2. Obtiene HTML.
+    3. Procesa y convierte a Markdown.
+    4. Analiza con IA.
+    5. Envía notificación por Telegram.
+    """
     load_dotenv()
 
+    try:
+        with open(URLS_FILE, 'r', encoding='utf-8') as f:
+            urls_data: Dict[str, Any] = json.load(f)
+            urls: List[str] = urls_data.get('urls', [])
+        
+        if not urls:
+            logging.warning("El archivo de URLs está vacío o no contiene la clave 'urls'.")
+            return
+
+        htmls = await get_html(urls)
+        if not htmls:
+            logging.error("No se pudo obtener ningún contenido HTML. Terminando ejecución.")
+            return
+
+        await parse_html_to_md(htmls)
+        
+        gemini_response = await ai_analyzer()
+        if not gemini_response:
+            logging.error("No se obtuvo respuesta de la IA. Terminando ejecución.")
+            return
+            
+        await send_telegram_message(gemini_response)
+
+    except FileNotFoundError:
+        logging.error(f"Error: El archivo '{URLS_FILE}' no fue encontrado.")
+    except json.JSONDecodeError:
+        logging.error(f"Error: El archivo '{URLS_FILE}' no es un JSON válido.")
+    except Exception as e:
+        logging.critical(f"Ha ocurrido una excepción no controlada en main: {e}")
+
+if __name__ == "__main__":
     asyncio.run(main())

@@ -1,0 +1,6 @@
+beautifulsoup4
+selenium
+markdownify
+python-dotenv
+google-generativeai
+aiogram

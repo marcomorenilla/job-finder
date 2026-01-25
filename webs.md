@@ -35,19 +35,19 @@ publicada 3 días publicada](https://www.accenture.com/es-es/careers/jobdetails?
 [---
 España
 ---
-Barcelona
-Guardar
-### ¿Eres recién titulado? Únete a Accenture Technology Barcelona
-Software Engineering
-publicada 3 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00283504_es&title=%C2%BFEres%20reci%C3%A9n%20titulado%3F%20%C3%9Anete%20a%20Accenture%20Technology%20Barcelona)
-[---
-España
----
 Madrid
 Guardar
 ### ¿Eres recién titulado? Únete a Accenture Consulting Madrid
 Consulting
 publicada 5 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00301132_es&title=%C2%BFEres%20reci%C3%A9n%20titulado%3F%20%C3%9Anete%20a%20Accenture%20Consulting%20Madrid)
+[---
+España
+---
+Barcelona
+Guardar
+### ¿Eres recién titulado? Únete a Accenture Technology Barcelona
+Software Engineering
+publicada 3 días publicada](https://www.accenture.com/es-es/careers/jobdetails?id=R00283504_es&title=%C2%BFEres%20reci%C3%A9n%20titulado%3F%20%C3%9Anete%20a%20Accenture%20Technology%20Barcelona)
 [---
 España
 ---
@@ -82,19 +82,19 @@ Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=R0028
 [---
 España
 ---
-Bilbao
-Guardar
-### DIXCOVER\_Programa de Prácticas Technology Bilbao
-Software Engineering
-Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=R00283728_es&title=DIXCOVER_Programa%20de%20Pr%C3%A1cticas%20Technology%20Bilbao)
-[---
-España
----
 Madrid
 Guardar
 ### Ingeniero Técnico de Calidad
 Engineering & Networks
 Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=13866648_es&title=Ingeniero%20T%C3%A9cnico%20de%20Calidad)
+[---
+España
+---
+Bilbao
+Guardar
+### DIXCOVER\_Programa de Prácticas Technology Bilbao
+Software Engineering
+Hace más de un mes](https://www.accenture.com/es-es/careers/jobdetails?id=R00283728_es&title=DIXCOVER_Programa%20de%20Pr%C3%A1cticas%20Technology%20Bilbao)
 [---
 España
 ---
@@ -137,3 +137,4 @@ Busca ofertas de empleo que coincidan con tus habilidades e intereses. Buscamos 
 ### Mantente al día
 Mantente al día de las últimas noticias, consejos y oportunidades profesionales.
 [LEER BLOG - ACCENTURE CAREERS](https://www.accenture.com/us-en/blogs/blogs-careers)
+
