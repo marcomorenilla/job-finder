@@ -88,16 +88,22 @@ async def parse_html_to_md(htmls):
             print('File webs.md saved successfully.')
 
 # Crea un cliente de Gemini y le pasa el archivo.md generado con las ofertas
-async def ai_analyzer(model, system_instruction,md_file):
-    client = genai.Client()
+async def ai_analyzer(model):
+    
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-    with open(md_file,'r',encoding='utf-8') as f:
+    client = genai.Client()
+    
+    with open('system_instructions.md', 'r', encoding='utf-8') as f:
+        system_instructions = f.read()
+
+    with open('webs.md','r',encoding='utf-8') as f:
         file_content=f.read()
 
     response = client.models.generate_content(
         model = model,
         config=types.GenerateContentConfig(
-            system_instruction=system_instruction
+            system_instruction=system_instructions
         ),
         contents= [file_content,'Busca ofertas que coincidan con el perfil. Responde con un mensaje aceptable para markdown de telegram con la empresa la oferta y el link'
         'Utiliza el menor número de palabras posibles y no justifiques por qué se ajusta el perfil'
@@ -106,14 +112,17 @@ async def ai_analyzer(model, system_instruction,md_file):
         '* Negrita']
     )
     
-
+    with open('gemini_response.md','w', encoding='utf-8') as f:
+        f.write(response.text)
 
     return response
 
 
 
-async def send_message(TELEGRAM_TOKEN, CHAT_ID,message):
-    print('entering in send message')
+async def send_message(message):
+
+    TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+    CHAT_ID = os.getenv('CHAT_ID')
 
     async with Bot(
         token=TELEGRAM_TOKEN
@@ -127,13 +136,12 @@ async def send_message(TELEGRAM_TOKEN, CHAT_ID,message):
 
 
 
-async def main(TELEGRAM_TOKEN, CHAT_ID):
+async def main():
     # Nombre del fichero con las Url
     urls_file = 'urls.json'
-    system_instructions_file = 'system_instructions.md'
-    web_md_file = 'webs.md'
     model = "gemini-2.5-flash"
     md_file = Path('webs.md')
+
     try:
         if(md_file.exists()):
             print(md_file)
@@ -143,17 +151,10 @@ async def main(TELEGRAM_TOKEN, CHAT_ID):
         with open(urls_file, 'r', encoding='utf-8') as f:
             urls = json.load(f).get('urls', [])
 
-        with open(system_instructions_file, 'r', encoding='utf-8') as f:
-            system_instructions = f.read()
-
-
-
         htmls = await get_html([url for url in urls] if urls else '<h1>No content found</h1>')
         await parse_html_to_md(htmls)       
-        gemini_response = await ai_analyzer(model, system_instructions,md_file)
-        with open('gemini_response.md','w', encoding='utf-8') as f:
-            f.write(gemini_response.text)
-        await send_message(TELEGRAM_TOKEN, CHAT_ID, gemini_response.text)
+        gemini_response = await ai_analyzer(model)
+        await send_message(gemini_response.text)
     except Exception as e:
         print(f'Exception:\n{e}')
 
@@ -161,16 +162,4 @@ if __name__ == "__main__":
     # cargamos variables de entorno
     load_dotenv()
 
-    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-    TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-    CHAT_ID = os.getenv('CHAT_ID')
-
-    print('Cargando variables de entorno....')
-    print('|')
-    print(f'|-> Gemini API KEY: {GEMINI_API_KEY[0:15]}.........')
-    print(f'|-> Telegram Token: {TELEGRAM_TOKEN[0:15]}.........')
-    print(f'|-> Chat Id: {CHAT_ID[0:15]}.........')
-    print('')
-
-    
-    asyncio.run(main(TELEGRAM_TOKEN,CHAT_ID))
+    asyncio.run(main())
