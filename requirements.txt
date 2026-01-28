@@ -2,5 +2,5 @@ beautifulsoup4
 selenium
 markdownify
 python-dotenv
-google-generativeai
+google-genai
 aiogram

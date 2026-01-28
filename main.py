@@ -19,10 +19,11 @@ from aiogram import Bot
 
 # --- Constants and Configuration ---
 # Nombres de archivos centralizados para fácil modificación.
-URLS_FILE = 'urls.json'
-SYSTEM_INSTRUCTIONS_FILE = 'system_instructions.md'
-OUTPUT_MD_FILE = 'webs.md'
-GEMINI_RESPONSE_FILE = 'gemini_response.md'
+BASE_DIR = Path(__file__).resolve().parent
+URLS_FILE = BASE_DIR / 'urls.json'
+SYSTEM_INSTRUCTIONS_FILE = BASE_DIR / 'system_instructions.md'
+OUTPUT_MD_FILE = BASE_DIR / 'webs.md'
+GEMINI_RESPONSE_FILE = BASE_DIR / 'gemini_response.md'
 AI_MODEL_NAME = "gemini-2.5-flash"
 
 # Configuración del logging para reemplazar los 'print'.
