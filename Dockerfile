@@ -1,14 +1,20 @@
-FROM alpine:latest AS builder
-RUN apk update &&\
-apk add python3 &&\
-apk add py3-pip &&\
-apk add py3-uv &&\
-apk add chromium &&\
-apk add chromium-chromedriver
+FROM python:3.14-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    gnupg \
+    unzip \
+    curl \
+    chromium \
+    chromium-driver \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
+
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 COPY main.py .
-RUN uv venv &&\
-uv pip install -r requirements.txt
-ENV PATH="/app/.venv/bin:$PATH"
+
 ENTRYPOINT [ "python", "main.py" ]

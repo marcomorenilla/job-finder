@@ -2,9 +2,11 @@ import json
 import os
 import asyncio
 import logging
+import telegramify_markdown
+
+from telegramify_markdown.customize import get_runtime_config
 from pathlib import Path
 from typing import List, Optional, Dict, Any
-
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -20,14 +22,18 @@ from aiogram import Bot
 # --- Constants and Configuration ---
 # Nombres de archivos centralizados para fácil modificación.
 BASE_DIR = Path(__file__).resolve().parent
-URLS_FILE = BASE_DIR / 'urls.json'
-SYSTEM_INSTRUCTIONS_FILE = BASE_DIR / 'system_instructions.md'
-OUTPUT_MD_FILE = BASE_DIR / 'webs.md'
-GEMINI_RESPONSE_FILE = BASE_DIR / 'gemini_response.md'
+URLS_FILE = BASE_DIR / 'assets/urls.json'
+SYSTEM_INSTRUCTIONS_FILE = BASE_DIR / 'assets/system_instructions.md'
+OUTPUT_MD_FILE = BASE_DIR / 'assets/webs.md'
+GEMINI_RESPONSE_FILE = BASE_DIR / 'logs/gemini_response.md'
 AI_MODEL_NAME = "gemini-2.5-flash"
 
 # Configuración del logging para reemplazar los 'print'.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Configuración básica para poner una chincheta en h1 y links telegram
+get_runtime_config().markdown_symbol.head_level_1 = "📌" 
+get_runtime_config().markdown_symbol.link = "🔗" 
 
 # --- Main Functions ---
 
@@ -130,7 +136,10 @@ async def ai_analyzer() -> Optional[str]:
 
 
         # El prompt se ha simplificado y se ha movido a las system_instructions para mayor claridad.
-        prompt = "Busca ofertas que coincidan con el perfil. Responde con un mensaje aceptable para markdown de telegram con la empresa la oferta y el link. Utiliza el menor número de palabras posibles y no justifiques por qué se ajusta el perfil. Utiliza solamente el Markdown de Telegram: Listas, *Negrita*."
+        prompt = "Busca ofertas que coincidan con el perfil.\
+        Responde con un mensaje aceptable para markdown con la empresa como inicio de sección h1 lists de ofertas como ul con nombre de la oferta, - ciudad (si es posible) separador : y el link como [enlace](https://link.com).\
+        Utiliza el menor número de palabras posibles y no justifiques por qué se ajusta la oferta.\
+        Excluye aquellas que no coincidan con el perfil"
 
         response = client.models.generate_content(
             model=AI_MODEL_NAME,
@@ -138,11 +147,18 @@ async def ai_analyzer() -> Optional[str]:
         )
 
         response_text = response.text
+
+        converted = telegramify_markdown.markdownify(
+            response_text,
+            max_line_length=None,
+            normalize_whitespace=False
+        )
+
         with open(GEMINI_RESPONSE_FILE, 'w', encoding='utf-8') as f:
-            f.write(response_text)
+            f.write(converted)
         
         logging.info(f"Respuesta de Gemini guardada en {GEMINI_RESPONSE_FILE}.")
-        return response_text
+        return converted
 
     except Exception as e:
         logging.error(f"Ocurrió un error durante el análisis de Gemini AI: {e}")
@@ -162,7 +178,7 @@ async def send_telegram_message(message: str) -> None:
     logging.info('Enviando mensaje a Telegram.')
     try:
         async with Bot(token=TELEGRAM_TOKEN) as bot:
-            await bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="Markdown")
+            await bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="MarkdownV2")
             logging.info('Mensaje enviado a Telegram correctamente.')
     except Exception as e:
         logging.error(f"Fallo al enviar el mensaje a Telegram: {e}")
